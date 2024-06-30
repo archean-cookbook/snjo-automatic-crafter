@@ -31,4 +31,5 @@ https://steamcommunity.com/sharedfiles/filedetails/?id=3278744757
 
 ## Source code
 If you want the code, but don't want to spawn the blueprint, the repo is here:
+
 https://github.com/archean-cookbook/snjo-automatic-crafter
