@@ -1,6 +1,10 @@
 include "craftfunctions.xc"
 const $crafter = "crafter"
-const $container = "container"
+;const $container = "container"
+var $inventories = ".a{container}.b{tank_O2}.c{tank_H2}.d{tank_1}"
+; it's optional to place separate O2 and H2 tanks.
+; If you have one, all or none of the tanks above, the code just counts from the ones it finds
+
 var $scroll = 0
 var $currentCraft:text
 var $categories:text
@@ -85,7 +89,7 @@ function @checkRecipe($name:text,$recipeamount:number):text
 	var $result = ""
 	foreach $recipe ($ingredient,$ingredientAmount)
 		var $required = $ingredientAmount * $recipeamount
-		var $available = @getResource($container,$ingredient)
+		var $available = @getResource($ingredient,$inventories);@getResource($container,$ingredient)
 		if $available < $required
 			var $diff = $required-$available
 			print("too few of",$ingredient,"need",$diff,"requested",$required,"have",$available);,"ingAm",$ingredientAmount,"recAm",$recipeamount)
@@ -98,10 +102,12 @@ function @checkRecipe($name:text,$recipeamount:number):text
 	return ""
 
 recursive function @addToQueue($name:text,$amount:number)
+	print("added to queue",$name,$amount)
 	var $new = ""
 	$new.name = $name
 	$new.amountordered = $amount ; - @getResource($container,$name)
-	$new.amountgoal = $amount + @getResource($container,$name)
+	;$new.amountgoal = $amount + @getResource($container,$name)
+	$new.amountgoal = $amount + @getResource($name,$inventories)
 	$queue.append($new)
 
 recursive function @addToQueueOld($name:text,$amount:number)
@@ -113,7 +119,7 @@ recursive function @addToQueueOld($name:text,$amount:number)
 	var $recipe = @getRecipe($name)
 	foreach $recipe ($ingredient,$n)
 		var $required = $n * $amount
-		var $available = @getResource($container,$ingredient)
+		var $available = @getResource($ingredient,$inventories);@getResource($container,$ingredient)
 		if $available < $required
 			var $diff = $required-$available
 			;print("too few of",$ingredient,"need",$diff)
@@ -124,7 +130,7 @@ recursive function @addToQueueOld($name:text,$amount:number)
 				recurse($ingredient,$required);$diff) ; calls @addToQueue, but the recurse needs to NOT have its own name in the line
 
 function @orderItemOld($name:text,$amount:number):text
-	var $instock = @getResource($container,$name)
+	var $instock = @getResource($name,$inventories);@getResource($container,$name)
 	if $instock < $amount
 		@start_craft($crafter,$name)
 		return "crafting"
@@ -228,8 +234,14 @@ function @drawRecipe($width:number,$recipe:text)
 		var $rect_right = $screen.width-2
 		;print($category, $open)
 		;if $screen.button_rect($rect_left,$rect_top,$rect_right,$rect_bottom,0,gray)
-		var $resourceAmount = @getResource($container,$item)
-		var $resourceText = text("{} {}/{}",$item,$resourceAmount,$amount)
+		var $resourceAmount = @getResource($item,$inventories);@getResource($container,$item)
+		var $resourceText = ""
+		if $item == "O2" || $item == "H2"
+			var $percent = $resourceAmount*100
+			$resourceText = text("{} tank at {0.00}% / {}",$item,$percent,$amount)
+
+		else
+			$resourceText = text("{} {} / {}",$item,$resourceamount,$amount)
 		var $bgColor = color(30,100,30) ; green, is available
 		var $textColor = white
 		if $resourceAmount < $amount
@@ -295,7 +307,7 @@ function @drawQueueView()
 	var $line = 1
 	foreach $queue ($i,$n)
 		$screen.write($spacer,$spacer+$lineHeight*$line,white,$n.name)
-		var $remaining = $n.amountordered-@getResource($container,$n.name)
+		var $remaining = $n.amountordered-@getResource($n.name,$inventories);@getResource($container,$n.name)
 		$screen.write($screen.width-50,$spacer+$lineHeight*$line,white,$remaining:text)
 		$line++
 	
@@ -377,7 +389,9 @@ function @updateCrafting()
 	var $lastItem = @lastItem()
 	var $progress = input_number($crafter,0)
 	var $isCrafting = abs($progress) != 1 && $progress != 0
-	var $neededItems = $lastItem.amountgoal - (@getResource($container,$lastItem.name)+$isCrafting)
+	;var $neededItems = $lastItem.amountgoal - (@getResource($container,$lastItem.name)+$isCrafting)
+	var $neededItems = $lastItem.amountgoal - (@getResource($lastItem.name,$inventories)+$isCrafting)
+	
 	;print("Crafting queue",$queue.size,$lastItem.name,"ordered",$lastItem.amountordered,"goal",$lastItem.amountgoal,"needed",$neededItems,"progress",$progress)
 	if $neededItems > 0
 		var $missing = @checkRecipe($lastItem.name,$neededItems);$lastItem.amountordered)
@@ -385,11 +399,15 @@ function @updateCrafting()
 			@addToQueue($i,$a)
 		$lastItem = @lastItem()
 		@start_craft($crafter,$lastItem.name)
-	elseif $isCrafting && @getResource($lastItem.name) < $lastItem.amountgoal
+	elseif $isCrafting && @getResource($lastItem.name,$inventories) < $lastItem.amountgoal
 		; finish this craft
+		print("continue craft")
 	else
 		@resetCountdown()
 		@cancel_craft($crafter)
+		var $last = $queue.size-1
+		var $removed = $queue.$last
+		print("queue item done, removing",$removed)
 		$queue.erase($queue.size-1)
 	@countDown()
 

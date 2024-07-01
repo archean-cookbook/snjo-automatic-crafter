@@ -25,7 +25,31 @@ function @button($x:number, $y:number, $width:number, $height:number, $linecolor
 	$screen.write($X+$margin,$Y+$margin,$textcolor,$text)
 	return $result
 	
-function @getResource($container:text,$name:text):number
+function @getResourceOld($container:text,$name:text):number
 	var $stockText = input_text($container,0)
 	;print("container",$name,$stockText.$name:number)
 	return $stockText.$name:number	
+
+function @getResource($name:text,$inventories:text):number
+	var $items = ""
+	var $O2 = 0
+	var $H2 = 0
+	var $gasFallback = 0
+	foreach $inventories ($i,$n)
+		if contains($n,"tank")
+			var $amount = input_text($n,0)
+			if contains($n,"O2")
+				$O2 += $amount
+			elseif contains($n,"H2")
+				$H2 += $amount
+			else ; very rough split in half, not accurate
+				$gasFallback = $amount/2
+		else
+			$items = input_text($n,0)
+	if $gasFallback > 0 && $O2 <= 0 && $H2 <= 0
+		$O2 = $gasFallback
+		$H2 = $gasFallback
+		print("using fallback split gas value since there aren't separate tanks")
+	$items.O2 = $O2
+	$items.H2 = $H2
+	return $items.$name:number	
