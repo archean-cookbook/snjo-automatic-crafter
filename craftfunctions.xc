@@ -24,7 +24,13 @@ function @button($x:number, $y:number, $width:number, $height:number, $linecolor
 	var $result = $screen.button_rect($x,$y,$x+$width,$y+$height,$linecolor,$backcolor)
 	$screen.write($X+$margin,$Y+$margin,$textcolor,$text)
 	return $result
+
+function @drawTriangleUp($X:number,$Y:number,$size:number,$lineColor:number,$fillColor:number)
+	draw_triangle($X+$size/2,$Y, $X,$Y+$size, $X+$size,$Y+$size,$lineColor,$fillColor)
 	
+function @drawTriangleDown($X:number,$Y:number,$size:number,$lineColor:number,$fillColor:number)
+	draw_triangle($X+$size/2,$Y+$size, $X,$Y, $X+$size,$Y,$lineColor,$fillColor)
+			
 function @getResourceOld($container:text,$name:text):number
 	var $stockText = input_text($container,0)
 	;print("container",$name,$stockText.$name:number)

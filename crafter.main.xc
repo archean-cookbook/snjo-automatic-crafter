@@ -6,6 +6,7 @@ var $inventories = ".a{container}.b{tank_O2}.c{tank_H2}.d{tank_1}"
 ; If you have one, all or none of the tanks above, the code just counts from the ones it finds
 
 var $scroll = 0
+var $scrollMax = 100
 var $currentCraft:text
 var $categories:text
 var $screen = screen
@@ -37,6 +38,8 @@ function @addHistory()
 	$now.category = $selectedCategory
 	$now.recipe = $selectedRecipe
 	$now.menulevel = $menulevel
+	;$now.scroll = $scroll
+	print("add history",$now)
 	var $historyLast = $history.size-1
 	;print("history step",$historyStep,"< size",$historyLast)
 	if $historyStep < $historyLast
@@ -67,6 +70,17 @@ function @getHistory($number:number)
 	$selectedCategory = $set.category
 	$selectedRecipe = $set.recipe
 	$menulevel = $set.menulevel
+	$scroll = $set.scroll
+	print("jump to history",$historyStep,$set)
+	
+function @updateHistoryScroll($step:number,$scrollValue:number)
+	if  $step >= $history.size
+		return
+	var $newHistoryEntry = $history.$step
+	$newHistoryEntry.scroll = $scroll
+	print("updated scroll on entry",$step,$newHistoryEntry)
+	$history.$step = $newHistoryEntry
+
 
 function @getLibraryItem($name:text):text
 	foreach $recipeLibrary ($i,$value)
@@ -173,7 +187,10 @@ init
 function @drawCategories($width:number)
 	var $line = 1
 	var $index = 0
+	$scrollMax = 0;size($categories)
+	;print("cat max",$scrollMax ,$categories)
 	foreach $categories ($category, $open)
+		$scrollMax++
 		if $index < $scroll || $index > $scroll+$linesOnScreen-2
 			$index++
 			continue
@@ -196,7 +213,9 @@ function @drawItems($width:number,$category:text)
 	var $line = 1
 	var $index = 0
 	$itemLines = $items.size
+	$scrollMax = 0
 	foreach $items ($craftindex, $craft)
+		$scrollMax++
 		;print("index",$index,"scroll",$scroll
 		if $index < $scroll || $index > $scroll+$linesOnScreen-2
 			$index++
@@ -210,6 +229,7 @@ function @drawItems($width:number,$category:text)
 		;if $screen.button_rect($rect_left,$rect_top,$rect_right,$rect_bottom,0,gray)
 		if @button($rect_left,$rect_top,$width,0,0,gray,$craft,white,2) && $newclick
 			;$categories.$category = !$categories.$category
+			@updateHistoryScroll($historyStep,$scroll)
 			print("select",$craft)
 			$selectedRecipe = $craft
 			$menulevel++
@@ -223,7 +243,9 @@ function @drawRecipe($width:number,$recipe:text)
 	var $line = 1
 	var $index = 0
 	;var $lineHeight = $screen.char_h+$marginVert+$spacer*2
+	$scrollMax = 0
 	foreach $recipeInputs ($item, $amount)
+		$scrollMax++
 		var $category = @getCategory($item)
 		if $index < $scroll || $index > $scroll+$linesOnScreen-3
 			$index++
@@ -321,6 +343,7 @@ function @drawCraftMenu()
 	var $topSpacing = 30
 	if @button($topX, $spacer, 20, 0,0,blue,"UP",white,2)
 		;print("up")
+		$scroll = 0
 		$menuLevel--
 		if $menuLevel < 0
 			$menuLevel = 0
@@ -331,6 +354,7 @@ function @drawCraftMenu()
 		;print("back")
 	$topX += $topSpacing+$spacer
 	if @button($topX, $spacer, $topSpacing, 0,0,blue,"FORW",white,2) && $newclick
+		;@updateHistoryScroll($historyStep,$scroll)
 		@getHistory($historyStep+1)
 		;print("forw")
 	;$topX += $topSpacing+$spacer
@@ -411,7 +435,45 @@ function @updateCrafting()
 		$queue.erase($queue.size-1)
 	@countDown()
 
-				
+
+function @drawScrollBar($X:number,$Y:number,$width:number,$height:number,$position:number,$max:number)
+	; SCROLL VIEW
+	if $max < 1
+		$max = 1
+		
+	var $buttonHeight = $height/4
+	var $arrowSize = $width-6
+	var $margin = ($width - $arrowSize)/2
+	
+	;UP
+	if @button($X,$Y,$width,$buttonHeight,0,gray,"")
+		$scroll -= $linesOnScreen-2
+		if $scroll < 0
+			$scroll = 0
+	@drawTriangleUp($X+$margin,$Y+$buttonHeight/2-$margin,$width-$margin*2,0,white)
+	
+	; DOWN
+	if @button($X,$height-$buttonHeight,$width,$buttonHeight,0,gray,"")
+		$scroll += $linesOnScreen-3
+		if $scroll >= $itemLines
+			$scroll = $itemLines-1
+		if $scroll < 0
+			$scroll = 0
+	@drawTriangleDown($X+$margin,(screen_h-$buttonHeight)+$buttonHeight/2-$margin,$width-$margin*2,0,white)
+	
+	var $scrollBoxTop = $buttonHeight + 2
+	var $scrollBoxBottom = $height - $buttonHeight - 7
+	var $scrollBoxHeight = $scrollBoxBottom - $scrollBoxTop
+	var $indicatorY = $scrollBoxTop + $scrollBoxHeight * ($position/$max)
+	if @button($X,$scrollBoxTop,$width,$scrollBoxHeight+5,0,color(20,20,20),"")
+		var $clickY = click_y - $scrollBoxTop
+		var $clickNormalized = $clickY / $scrollBoxHeight
+		var $newScroll = min(floor($max * $clickNormalized),$max)
+		print("scroll click",$clickNormalized,"new",$newScroll,"max",$max)
+		$scroll = $newScroll
+		;var $newScroll = 
+	draw_rect($X,$indicatorY,$X+$width,$indicatorY+5,0,white)
+		
 tick
 	blank()
 	text_size(1)
@@ -425,20 +487,7 @@ tick
 
 	@drawQueueBar()
 	
-	; SCROLL VIEW
-	if button(screen_w-16,0,color(20,20,20),15,screen_h/2)
-		$scroll -= $linesOnScreen-2
-		if $scroll < 0
-			$scroll = 0
-	if button(screen_w-16,screen_h/2+1,color(20,20,20),15,screen_h/2) && $linesOnScreen < $itemLines+3
-		$scroll += $linesOnScreen-3
-		if $scroll >= $itemLines
-			$scroll = $itemLines-1
-		if $scroll < 0
-			$scroll = 0
-	
-	draw_triangle(0+$upX,0+$upY,10+$upX,0+$upY,5+$upX,-9+$upY,white,white)
-	draw_triangle(0+$downX,0+$downY,10+$downX,0+$downY,5+$downX,9+$downY,white,white)
+	@drawScrollBar(screen_w-16,1,15,screen_h-2,$scroll,$scrollMax)
 	
 	; CRAFT PRODUCTS
 	;@crafting()
