@@ -115,7 +115,7 @@ function @checkRecipe($name:text,$recipeamount:number):text
 				return $result
 	return ""
 
-recursive function @addToQueue($name:text,$amount:number)
+function @addToQueueNewItem($name:text,$amount:number)
 	print("added to queue",$name,$amount)
 	var $new = ""
 	$new.name = $name
@@ -124,24 +124,44 @@ recursive function @addToQueue($name:text,$amount:number)
 	$new.amountgoal = $amount + @getResource($name,$inventories)
 	$queue.append($new)
 
-recursive function @addToQueueOld($name:text,$amount:number)
-	var $new = ""
-	$new.name = $name
-	$new.amount = $amount
-	$queue.append($new)
-	;$queue.insert(-1,$new)
-	var $recipe = @getRecipe($name)
-	foreach $recipe ($ingredient,$n)
-		var $required = $n * $amount
-		var $available = @getResource($ingredient,$inventories);@getResource($container,$ingredient)
-		if $available < $required
-			var $diff = $required-$available
-			;print("too few of",$ingredient,"need",$diff)
-			if @getCategory($ingredient) == ""
-				print("skipping mineral, not added to queue")
-			else
-				;print("adding ingredient to queue:",$ingredient,"x" & $diff:text)
-				recurse($ingredient,$required);$diff) ; calls @addToQueue, but the recurse needs to NOT have its own name in the line
+function @addToQueueExistingItem($name:text,$amount:number):number
+	foreach $queue ($i,$n)
+		if $n.name == $name
+			var $new = $n
+			$new.amountordered += $amount
+			$new.amountgoal += $amount ;$new.amountordered + @getResource($name,$inventories)
+			;print(text("erase queue item at: {} size: {}",$i,$queue.size))
+			$queue.erase($i)
+			;print(text("insert queue item at: {} size: {}",$i,$queue.size))
+			$queue.append($new)
+			;print(text("queue size now: {}",$queue.size))
+			print("Add to existing queue item", $n,$i,$new.amountordered,$new.amountgoal)
+			;print("queue item now", $queue.$i)
+			return 1
+	return 0
+
+function @addToQueue($name:text,$amount:number)
+	if @addToQueueExistingItem($name,$amount) == 0
+		@addToQueueNewItem($name,$amount)
+
+; recursive function @addToQueueOld($name:text,$amount:number)
+;	var $new = ""
+;	$new.name = $name
+;	$new.amount = $amount
+;	$queue.append($new)
+;	;$queue.insert(-1,$new)
+;	var $recipe = @getRecipe($name)
+;	foreach $recipe ($ingredient,$n)
+;		var $required = $n * $amount
+;		var $available = @getResource($ingredient,$inventories);@getResource($container,$ingredient)
+;		if $available < $required
+;			var $diff = $required-$available
+;			;print("too few of",$ingredient,"need",$diff)
+;			if @getCategory($ingredient) == ""
+;				print("skipping mineral, not added to queue")
+;			else
+;				;print("adding ingredient to queue:",$ingredient,"x" & $diff:text)
+;				recurse($ingredient,$required);$diff) ; calls @addToQueue, but the recurse needs to NOT have its own name in the line
 
 function @orderItemOld($name:text,$amount:number):text
 	var $instock = @getResource($name,$inventories);@getResource($container,$name)
@@ -329,7 +349,8 @@ function @drawQueueView()
 	var $line = 1
 	foreach $queue ($i,$n)
 		$screen.write($spacer,$spacer+$lineHeight*$line,white,$n.name)
-		var $remaining = $n.amountordered-@getResource($n.name,$inventories);@getResource($container,$n.name)
+		; var $remaining = $n.amountordered-@getResource($n.name,$inventories);@getResource($container,$n.name)
+		var $remaining = $n.amountgoal-@getResource($n.name,$inventories)
 		$screen.write($screen.width-50,$spacer+$lineHeight*$line,white,$remaining:text)
 		$line++
 	
@@ -370,6 +391,10 @@ function @drawCraftMenu()
 		if @button($spacer*3+100, $topY, 0, 0,0,color(0,80,0),"x100",white,2) && $newclick
 			print("----new craft---",$selectedRecipe,"x100")
 			@addToQueue($selectedRecipe,100)
+			;$showQueue = 1 ; optional
+		if @button($spacer*3+130, $topY, 0, 0,0,color(0,80,0),"x500",white,2) && $newclick
+			print("----new craft---",$selectedRecipe,"x500")
+			@addToQueue($selectedRecipe,500)
 			;$showQueue = 1 ; optional
 	$topX += $topSpacing+$spacer*2
 
