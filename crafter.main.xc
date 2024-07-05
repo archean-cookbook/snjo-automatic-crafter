@@ -2,6 +2,7 @@ include "craftfunctions.xc"
 const $crafter = "crafter"
 ;const $container = "container"
 var $inventories = ".a{container}.b{tank_O2}.c{tank_H2}.d{tank_1}"
+storage var $favorites : text
 ; it's optional to place separate O2 and H2 tanks.
 ; If you have one, all or none of the tanks above, the code just counts from the ones it finds
 
@@ -30,6 +31,7 @@ var $downY : number
 var $linesOnScreen : number
 var $itemLines = 0
 array $queue : text
+var $showFavoriteScreen = 0
 
 var $lineHeight = 12
 
@@ -225,8 +227,17 @@ function @drawCategories($width:number)
 			$scroll = 0
 		$line++
 		$index++
-	$itemLines = $index
 		
+	; FAVORITES	
+	var $rect_top = $line*($screen.char_h+$marginVert+$spacer*2)+$spacer
+	var $rect_bottom = $rect_top + $screen.char_h + $marginVert*2
+	var $rect_left = $spacer
+	if @button($rect_left,$rect_top,$width,0,0,gray,"  Favorites",white,2) && $newclick
+		$showFavoriteScreen = 1
+	$screen.@drawHeart($rect_left+2,$rect_top+1,0)
+	$itemLines = $index
+	;$screen.@drawHeart(170,20,1)
+
 function @drawItems($width:number,$category:text)
 	array $items:text
 	$items.from(get_recipes($crafter, $category), ",") ; get recipes in category
@@ -396,6 +407,11 @@ function @drawCraftMenu()
 			print("----new craft---",$selectedRecipe,"x500")
 			@addToQueue($selectedRecipe,500)
 			;$showQueue = 1 ; optional
+			;FAVORITES
+		$screen.@drawHeart(168,$topY+1,$favorites.$selectedRecipe)
+		if $screen.button_rect(167,$topY,178,$topY+11,0,0)
+			$favorites.$selectedRecipe = !$favorites.$selectedRecipe
+			print(text("added {} to favorites",$selectedRecipe)
 	$topX += $topSpacing+$spacer*2
 
 	$topY += $lineHeight
@@ -409,6 +425,48 @@ function @drawCraftMenu()
 	elseif $menulevel == 2
 		$screen.write($topX,$spacer+$marginVert,white,$selectedRecipe)
 		@drawRecipe($screen.width-$marginHorz-15,$selectedRecipe)
+
+function @drawFavoriteScreen()
+	if @button(2,2,0,0,0,blue,"BACK",white,2)
+		$showFavoriteScreen = 0
+	$screen.write(35,4,white,"Favorites")
+	var $favCount = 0
+	foreach $favorites ($favName,$faved)
+		if $faved	
+			$favCount++
+	$scrollMax = 0
+	
+	var $line = 1
+	var $index = 0
+	$itemLines = $favCount
+	$scrollMax = 0
+	
+	foreach $favorites ($favName,$faved)
+		if $faved
+			$scrollMax++
+			if $index < $scroll || $index > $scroll+$linesOnScreen-2
+				$index++
+				continue
+		
+			var $rect_top = $line*($screen.char_h+$marginVert+$spacer*2)+$spacer
+			var $rect_bottom = $rect_top + $screen.char_h + $marginVert*2
+			var $rect_left = $spacer
+			var $rect_right = $screen.width-2
+			$screen.@drawHeart($spacer,$rect_top+1,$favorites.$favName)
+			if @button(1,$rect_top,11,11,0,0,"",white,2)
+				$favorites.$favName = 0
+			if @button(12,$rect_top,170,11,0,color(60,60,60),$favName,white,2)
+				$selectedRecipe = $favName
+				$selectedCategory = @getCategory($favName)
+				$showFavoriteScreen = 0
+				$menuLevel = 2
+			$favCount++
+			$line++
+			$index++
+	if $favCount == 0
+		$screen.write(5,40,white,"No favorites added\n\nPress   on a craft to add\na favorite")
+		$screen.@drawHeart(40,55,0)
+	;foreach $favorite
 
 ; CRAFTING ON TICK
 var $queueWaitBetween = 5
@@ -507,6 +565,8 @@ tick
 	$lineHeight = $screen.char_h + $spacer + $marginVert*2
 	if $showQueue == 1
 		@drawQueueView()
+	elseif $showFavoriteScreen
+		@drawFavoriteScreen()
 	else
 		@drawCraftMenu()
 
