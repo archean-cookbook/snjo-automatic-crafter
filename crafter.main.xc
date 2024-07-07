@@ -1,7 +1,7 @@
 include "craftfunctions.xc"
 const $crafter = "crafter"
 ;const $container = "container"
-var $inventories = ".a{container}.b{tank_O2}.c{tank_H2}.d{tank_1}"
+var $inventories = ".a{container}.b{tank_O2}.c{tank_H2}.d{tank_H2O}.e{tank_1}"
 storage var $favorites : text
 ; it's optional to place separate O2 and H2 tanks.
 ; If you have one, all or none of the tanks above, the code just counts from the ones it finds
@@ -289,7 +289,7 @@ function @drawRecipe($width:number,$recipe:text)
 		;if $screen.button_rect($rect_left,$rect_top,$rect_right,$rect_bottom,0,gray)
 		var $resourceAmount = @getResource($item,$inventories);@getResource($container,$item)
 		var $resourceText = ""
-		if $item == "O2" || $item == "H2"
+		if $item == "O2" || $item == "H2" || $item == "H2O"
 			var $percent = $resourceAmount*100
 			$resourceText = text("{} tank at {0.00}% / {}",$item,$percent,$amount)
 

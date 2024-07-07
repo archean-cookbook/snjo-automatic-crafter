@@ -40,14 +40,21 @@ function @getResource($name:text,$inventories:text):number
 	var $items = ""
 	var $O2 = 0
 	var $H2 = 0
+	var $H2O = 0
 	var $gasFallback = 0
 	foreach $inventories ($i,$n)
+		;print("inv",$i,$n)
 		if contains($n,"tank")
 			var $amount = input_text($n,0)
 			if contains($n,"O2")
 				$O2 += $amount
+				;print("O2",$n,$amount)
+			elseif contains($n,"H2O") ; must be before H2, since H2O contains H2
+				;print("H2O",$n,$amount)
+				$H2O += $amount
 			elseif contains($n,"H2")
 				$H2 += $amount
+				;print("H2",$n,$amount)
 			else ; very rough split in half, not accurate
 				$gasFallback = $amount/2
 		else
@@ -58,7 +65,8 @@ function @getResource($name:text,$inventories:text):number
 		print("using fallback split gas value since there aren't separate tanks")
 	$items.O2 = $O2
 	$items.H2 = $H2
-	return $items.$name:number	
+	$items.H2O = $H2O
+	return $items.$name:number
 
 function @getResourceBasic($container:text,$resourceName:text):number
 	var $items = input_text($container,0)
@@ -78,8 +86,5 @@ function @drawHeart($screen:screen,$X:number,$Y:number,$filled:number)
 
 	$screen.draw_line($X+1,$Y+5,$X+5,$Y+9,$lineColor)
 	$screen.draw_line($X+7,$Y+5,$X+3,$Y+9,$lineColor)
-
-
-function @addToFavorites($craftName:text)
 	
 
