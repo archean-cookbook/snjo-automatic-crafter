@@ -11,26 +11,7 @@ function @cancel_craft($crafter:text)
 
 function @progress():number
 	return input_number("crafter",0)
-	
-function @button($x:number, $y:number, $width:number, $height:number, $linecolor:number, $backcolor:number, $text:text, $textcolor:number, $margin:number):number
-	;if $debug
-	;	print($x,$y,$width,$height,$text)
-	var $screen = screen
-	if $width == 0
-		$width = size($text)*$screen.char_w + $margin*2
-	if $height == 0
-		$height = $screen.char_h + $margin*2
-	;print($screen.char_h,$margin,$height)
-	var $result = $screen.button_rect($x,$y,$x+$width,$y+$height,$linecolor,$backcolor)
-	$screen.write($X+$margin,$Y+$margin,$textcolor,$text)
-	return $result
 
-function @drawTriangleUp($X:number,$Y:number,$size:number,$lineColor:number,$fillColor:number)
-	draw_triangle($X+$size/2,$Y, $X,$Y+$size, $X+$size,$Y+$size,$lineColor,$fillColor)
-	
-function @drawTriangleDown($X:number,$Y:number,$size:number,$lineColor:number,$fillColor:number)
-	draw_triangle($X+$size/2,$Y+$size, $X,$Y, $X+$size,$Y,$lineColor,$fillColor)
-			
 function @getResourceOld($container:text,$name:text):number
 	var $stockText = input_text($container,0)
 	;print("container",$name,$stockText.$name:number)

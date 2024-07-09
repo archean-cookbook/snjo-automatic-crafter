@@ -3,6 +3,7 @@ const $crafter = "crafter"
 ;const $container = "container"
 var $inventories = ".a{container}.b{tank_O2}.c{tank_H2}.d{tank_H2O}.e{tank_1}"
 storage var $favorites : text
+storage var $autoqueue : text
 ; it's optional to place separate O2 and H2 tanks.
 ; If you have one, all or none of the tanks above, the code just counts from the ones it finds
 
@@ -32,148 +33,16 @@ var $linesOnScreen : number
 var $itemLines = 0
 array $queue : text
 var $showFavoriteScreen = 0
+var $showQueue = 0
+var $showAutoView = 0
+var $favItemSelected = ""
 
 var $lineHeight = 12
 
-function @addHistory()
-	var $now = ""
-	$now.category = $selectedCategory
-	$now.recipe = $selectedRecipe
-	$now.menulevel = $menulevel
-	;$now.scroll = $scroll
-	print("add history",$now)
-	var $historyLast = $history.size-1
-	;print("history step",$historyStep,"< size",$historyLast)
-	if $historyStep < $historyLast
-		;print("not at end")
-		var $cull = $historyLast-$historyStep
-		repeat $cull ($i)
-			$historyLast = $history.size-1
-			;print($i,"cull loop",$historyStep,"size pre",$history.size)
-			var $content = $history.$historyStep
-			;print("cull",$content.recipe)
-			if $historyLast > 0 && $history.size > 0
-				$history.erase($historyLast)
-		;print("Replace history at ",$historyStep,"last",$historyLast)			
-
-	$history.append($now)
-	$historyStep = $history.size-1
-	;print("Appending to history, new size:",$history.size)
-
-function @getHistory($number:number)
-	if $number < 0
-		return
-	if $number >= $history.size
-		return
-	$historyStep = $number
-	;print("history",$history.size,$historyStep)
-	var $set = $history.$historyStep
-	;print("history content",$set.category,$set.recipe,$set.menulevel)
-	$selectedCategory = $set.category
-	$selectedRecipe = $set.recipe
-	$menulevel = $set.menulevel
-	$scroll = $set.scroll
-	print("jump to history",$historyStep,$set)
-	
-function @updateHistoryScroll($step:number,$scrollValue:number)
-	if  $step >= $history.size
-		return
-	var $newHistoryEntry = $history.$step
-	$newHistoryEntry.scroll = $scroll
-	print("updated scroll on entry",$step,$newHistoryEntry)
-	$history.$step = $newHistoryEntry
-
-
-function @getLibraryItem($name:text):text
-	foreach $recipeLibrary ($i,$value)
-		if $value.name == $name
-			;print("found",$name,$value.name,$value.category,$value.recipe)
-			return $value
-	;print("couldn't find",$name)
-	return ""
-
-function @getCategory($name:text):text
-	var $cat = @getLibraryItem($name)
-	return $cat.category
-	
-function @getRecipe($name:text):text
-	var $rec = @getLibraryItem($name)
-	return $rec.recipe
-
-function @checkRecipe($name:text,$recipeamount:number):text
-	var $recipe = @getRecipe($name)
-	var $result = ""
-	foreach $recipe ($ingredient,$ingredientAmount)
-		var $required = $ingredientAmount * $recipeamount
-		var $available = @getResource($ingredient,$inventories);@getResource($container,$ingredient)
-		if $available < $required
-			var $diff = $required-$available
-			print("too few of",$ingredient,"need",$diff,"requested",$required,"have",$available);,"ingAm",$ingredientAmount,"recAm",$recipeamount)
-			if @getCategory($ingredient) == ""
-				print("skipping mineral, not added to queue")
-			else
-				print("adding ingredient to queue:",$ingredient,"x" & $diff:text)
-				$result.$ingredient = $diff
-				return $result
-	return ""
-
-function @addToQueueNewItem($name:text,$amount:number)
-	print("added to queue",$name,$amount)
-	var $new = ""
-	$new.name = $name
-	$new.amountordered = $amount ; - @getResource($container,$name)
-	;$new.amountgoal = $amount + @getResource($container,$name)
-	$new.amountgoal = $amount + @getResource($name,$inventories)
-	$queue.append($new)
-
-function @addToQueueExistingItem($name:text,$amount:number):number
-	foreach $queue ($i,$n)
-		if $n.name == $name
-			var $new = $n
-			$new.amountordered += $amount
-			$new.amountgoal += $amount ;$new.amountordered + @getResource($name,$inventories)
-			;print(text("erase queue item at: {} size: {}",$i,$queue.size))
-			$queue.erase($i)
-			;print(text("insert queue item at: {} size: {}",$i,$queue.size))
-			$queue.append($new)
-			;print(text("queue size now: {}",$queue.size))
-			print("Add to existing queue item", $n,$i,$new.amountordered,$new.amountgoal)
-			;print("queue item now", $queue.$i)
-			return 1
-	return 0
-
-function @addToQueue($name:text,$amount:number)
-	if @addToQueueExistingItem($name,$amount) == 0
-		@addToQueueNewItem($name,$amount)
-
-; recursive function @addToQueueOld($name:text,$amount:number)
-;	var $new = ""
-;	$new.name = $name
-;	$new.amount = $amount
-;	$queue.append($new)
-;	;$queue.insert(-1,$new)
-;	var $recipe = @getRecipe($name)
-;	foreach $recipe ($ingredient,$n)
-;		var $required = $n * $amount
-;		var $available = @getResource($ingredient,$inventories);@getResource($container,$ingredient)
-;		if $available < $required
-;			var $diff = $required-$available
-;			;print("too few of",$ingredient,"need",$diff)
-;			if @getCategory($ingredient) == ""
-;				print("skipping mineral, not added to queue")
-;			else
-;				;print("adding ingredient to queue:",$ingredient,"x" & $diff:text)
-;				recurse($ingredient,$required);$diff) ; calls @addToQueue, but the recurse needs to NOT have its own name in the line
-
-function @orderItemOld($name:text,$amount:number):text
-	var $instock = @getResource($name,$inventories);@getResource($container,$name)
-	if $instock < $amount
-		@start_craft($crafter,$name)
-		return "crafting"
-	else
-		print("done, in stock:", $instock:text, "requested:" ,$amount:text)
-		@cancel_craft($crafter)
-		return "done"
+include "history.xc"
+include "ui.xc"
+include "queue.xc"
+include "drawmenus.xc"
 	
 init
 	$linesOnScreen = floor($screen.height / ($screen.char_h + $spacer + $marginvert*2))-1
@@ -205,269 +74,6 @@ init
 	
 	@addHistory()
 
-
-function @drawCategories($width:number)
-	var $line = 1
-	var $index = 0
-	$scrollMax = 0;size($categories)
-	;print("cat max",$scrollMax ,$categories)
-	foreach $categories ($category, $open)
-		$scrollMax++
-		if $index < $scroll || $index > $scroll+$linesOnScreen-2
-			$index++
-			continue
-		var $rect_top = $line*($screen.char_h+$marginVert+$spacer*2)+$spacer
-		var $rect_bottom = $rect_top + $screen.char_h + $marginVert*2
-		var $rect_left = $spacer
-		if @button($rect_left,$rect_top,$width,0,0,gray,$category,white,2) && $newclick
-			$selectedCategory = $category
-			print("select",$selectedCategory)
-			$menulevel++
-			@addHistory()
-			$scroll = 0
-		$line++
-		$index++
-		
-	; FAVORITES	
-	var $rect_top = $line*($screen.char_h+$marginVert+$spacer*2)+$spacer
-	var $rect_bottom = $rect_top + $screen.char_h + $marginVert*2
-	var $rect_left = $spacer
-	if @button($rect_left,$rect_top,$width,0,0,gray,"  Favorites",white,2) && $newclick
-		$showFavoriteScreen = 1
-	$screen.@drawHeart($rect_left+2,$rect_top+1,0)
-	$itemLines = $index
-	;$screen.@drawHeart(170,20,1)
-
-function @drawItems($width:number,$category:text)
-	array $items:text
-	$items.from(get_recipes($crafter, $category), ",") ; get recipes in category
-	var $line = 1
-	var $index = 0
-	$itemLines = $items.size
-	$scrollMax = 0
-	foreach $items ($craftindex, $craft)
-		$scrollMax++
-		;print("index",$index,"scroll",$scroll
-		if $index < $scroll || $index > $scroll+$linesOnScreen-2
-			$index++
-			continue
-
-		var $rect_top = $line*($screen.char_h+$marginVert+$spacer*2)+$spacer
-		var $rect_bottom = $rect_top + $screen.char_h + $marginVert*2
-		var $rect_left = $spacer
-		var $rect_right = $screen.width-2
-		;print($category, $open)
-		;if $screen.button_rect($rect_left,$rect_top,$rect_right,$rect_bottom,0,gray)
-		if @button($rect_left,$rect_top,$width,0,0,gray,$craft,white,2) && $newclick
-			;$categories.$category = !$categories.$category
-			@updateHistoryScroll($historyStep,$scroll)
-			print("select",$craft)
-			$selectedRecipe = $craft
-			$menulevel++
-			@addHistory()
-			$scroll = 0
-		$line++
-		$index++
-		
-function @drawRecipe($width:number,$recipe:text)
-	var $recipeInputs = get_recipe($crafter, $selectedCategory, $selectedRecipe)
-	var $line = 1
-	var $index = 0
-	;var $lineHeight = $screen.char_h+$marginVert+$spacer*2
-	$scrollMax = 0
-	foreach $recipeInputs ($item, $amount)
-		$scrollMax++
-		var $category = @getCategory($item)
-		if $index < $scroll || $index > $scroll+$linesOnScreen-3
-			$index++
-			continue
-		var $rect_top = ($line+1)*$lineHeight+$spacer
-		var $rect_bottom = $rect_top + $screen.char_h + $marginVert*2
-		var $rect_left = $spacer
-		var $rect_right = $screen.width-2
-		;print($category, $open)
-		;if $screen.button_rect($rect_left,$rect_top,$rect_right,$rect_bottom,0,gray)
-		var $resourceAmount = @getResource($item,$inventories);@getResource($container,$item)
-		var $resourceText = ""
-		if $item == "O2" || $item == "H2" || $item == "H2O"
-			var $percent = $resourceAmount*100
-			$resourceText = text("{} tank at {0.00}% / {}",$item,$percent,$amount)
-
-		else
-			$resourceText = text("{} {} / {}",$item,$resourceamount,$amount)
-		var $bgColor = color(30,100,30) ; green, is available
-		var $textColor = white
-		if $resourceAmount < $amount
-			if $category == ""
-				$bgColor = color(255,0,0) ; red, mineral missing, mine more
-			else
-				$bgColor = color(50,50,70) ; blue, will be sub-crafted
-
-		if $category == ""
-			$textColor = black
-		if @button($rect_left,$rect_top,$width,0,0,$bgColor,$resourceText,$textColor,2) && $newclick
-			;$categories.$selectedCategory = !$categories.$selectedCategory
-			print("select item ",$item)
-			if 	$category != ""
-				$selectedRecipe = $item
-				print("cat from item",$selectedRecipe,$category)
-				$selectedCategory = $category
-			else
-				print("can't craft item",$item)
-			@addHistory()
-			$scroll = 0
-		$line++
-		$index++
-	$itemLines = $index
-
-var $showQueue = 0
-function @drawQueueBar()
-	var $Y = $screen.height - $lineHeight - $spacer
-	$screen.draw_line(2,$Y-2,$screen.width-17,$Y-2,gray)
-	$screen.write($spacer,$Y+$spacer,gray,"Queue:")
-	var $statusNum = input_number($crafter,0)
-	if $statusNum < 0 &&  $queue.size > 0
-		$screen.write($spacer+40,$Y+$spacer,red,"Error")
-	else
-		$screen.write($spacer+40,$Y+$spacer,white,$queue.size:text)
-	
-	if $showQueue == 0
-		if @button($spacer+70,$Y, 0, 0,0,color(50,50,100),"  VIEW  ",white,2)
-			$showQueue = 1
-	else
-		if @button($spacer+70,$Y, 0, 0,0,color(50,50,100),"  BACK  ",white,2)
-			$showQueue = 0
-		
-	if @button($spacer+125,$Y, 0, 0,0,color(200,0,0),"  STOP  ",white,2)
-	;if @button(10,100,100,10,0,red,"STOP",white,2)
-		@cancel_craft($crafter)
-		$queue.clear()
-
-function @drawQueueView()
-	var $statusNum = input_number($crafter,0)
-	;print("status",$statusNum)
-	var $status = ""
-	if $statusNum >= 1
-		$status = "Status: Done"
-	elseif $statusNum < 0 && $queue.size > 0
-		$status = "Status: Missing resources"
-	elseif $queue.size > 0
-		var $statusPercent = floor($statusNum*100)
-		$status = text("Status: {}%", $statusPercent)
-	else
-		$status = "Queue is empty"
-	$screen.write($spacer,$spacer,white,$status)
-	var $line = 1
-	foreach $queue ($i,$n)
-		$screen.write($spacer,$spacer+$lineHeight*$line,white,$n.name)
-		; var $remaining = $n.amountordered-@getResource($n.name,$inventories);@getResource($container,$n.name)
-		var $remaining = $n.amountgoal-@getResource($n.name,$inventories)
-		$screen.write($screen.width-50,$spacer+$lineHeight*$line,white,$remaining:text)
-		$line++
-	
-function @drawCraftMenu()
-	$clicked = $screen.clicked
-	$newclick = $clicked && !$oldclicked
-	$oldclicked = $clicked
-	;print("start",$selectedCategory,$selectedRecipe,$menulevel)
-	var $topX = $spacer
-	var $topY = $spacer
-	var $topSpacing = 30
-	if @button($topX, $spacer, 20, 0,0,blue,"UP",white,2)
-		;print("up")
-		$scroll = 0
-		$menuLevel--
-		if $menuLevel < 0
-			$menuLevel = 0
-
-	$topX += 20+$spacer
-	if @button($topX, $spacer, $topSpacing, 0,0,blue,"BACK",white,2) && $newclick
-		@getHistory($historyStep-1)
-		;print("back")
-	$topX += $topSpacing+$spacer
-	if @button($topX, $spacer, $topSpacing, 0,0,blue,"FORW",white,2) && $newclick
-		;@updateHistoryScroll($historyStep,$scroll)
-		@getHistory($historyStep+1)
-		;print("forw")
-	;$topX += $topSpacing+$spacer
-
-	$topY += $lineHeight
-	if $menulevel == 2
-		if @button($spacer, $topY, 70, 0,0,color(0,100,0),"   CRAFT   ",white,2) && $newclick
-			print("----new craft---",$selectedRecipe)
-			@addToQueue($selectedRecipe,1)
-		if @button($spacer*2+70, $topY, 30, 0,0,color(0,80,0)," x10",white,2) && $newclick
-			print("----new craft---",$selectedRecipe,"x10")
-			@addToQueue($selectedRecipe,10)
-		if @button($spacer*3+100, $topY, 0, 0,0,color(0,80,0),"x100",white,2) && $newclick
-			print("----new craft---",$selectedRecipe,"x100")
-			@addToQueue($selectedRecipe,100)
-			;$showQueue = 1 ; optional
-		if @button($spacer*3+130, $topY, 0, 0,0,color(0,80,0),"x500",white,2) && $newclick
-			print("----new craft---",$selectedRecipe,"x500")
-			@addToQueue($selectedRecipe,500)
-			;$showQueue = 1 ; optional
-			;FAVORITES
-		$screen.@drawHeart(168,$topY+1,$favorites.$selectedRecipe)
-		if $screen.button_rect(167,$topY,178,$topY+11,0,0)
-			$favorites.$selectedRecipe = !$favorites.$selectedRecipe
-			print(text("added {} to favorites",$selectedRecipe)
-	$topX += $topSpacing+$spacer*2
-
-	$topY += $lineHeight
-	if $menulevel == 0
-		$screen.write($topX,$spacer+$marginVert,white,$menupages.$menulevel)
-		@drawCategories($screen.width-15-$marginHorz)
-	elseif $menulevel == 1
-		$screen.write($topX,$spacer+$marginVert,white,$selectedCategory)
-		;print("sc",$selectedCategory)
-		@drawItems($screen.width-$marginHorz-15,$selectedCategory)
-	elseif $menulevel == 2
-		$screen.write($topX,$spacer+$marginVert,white,$selectedRecipe)
-		@drawRecipe($screen.width-$marginHorz-15,$selectedRecipe)
-
-function @drawFavoriteScreen()
-	if @button(2,2,0,0,0,blue,"BACK",white,2)
-		$showFavoriteScreen = 0
-	$screen.write(35,4,white,"Favorites")
-	var $favCount = 0
-	foreach $favorites ($favName,$faved)
-		if $faved	
-			$favCount++
-	$scrollMax = 0
-	
-	var $line = 1
-	var $index = 0
-	$itemLines = $favCount
-	$scrollMax = 0
-	
-	foreach $favorites ($favName,$faved)
-		if $faved
-			$scrollMax++
-			if $index < $scroll || $index > $scroll+$linesOnScreen-2
-				$index++
-				continue
-		
-			var $rect_top = $line*($screen.char_h+$marginVert+$spacer*2)+$spacer
-			var $rect_bottom = $rect_top + $screen.char_h + $marginVert*2
-			var $rect_left = $spacer
-			var $rect_right = $screen.width-2
-			$screen.@drawHeart($spacer,$rect_top+1,$favorites.$favName)
-			if @button(1,$rect_top,11,11,0,0,"",white,2)
-				$favorites.$favName = 0
-			if @button(12,$rect_top,170,11,0,color(60,60,60),$favName,white,2)
-				$selectedRecipe = $favName
-				$selectedCategory = @getCategory($favName)
-				$showFavoriteScreen = 0
-				$menuLevel = 2
-			$favCount++
-			$line++
-			$index++
-	if $favCount == 0
-		$screen.write(5,40,white,"No favorites added\n\nPress   on a craft to add\na favorite")
-		$screen.@drawHeart(40,55,0)
-	;foreach $favorite
-
 ; CRAFTING ON TICK
 var $queueWaitBetween = 5
 var $queueCountdown = 5
@@ -478,11 +84,6 @@ function @resetCountdown()
 function @countDown()
 	if $queueCountdown > 0
 		$queueCountdown--
-
-function @lastItem():text
-	var $qi = $queue.size-1
-	var $queueItem = $queue.$qi
-	return $queueItem
 
 function @updateCrafting()
 	if $queueCountdown > 0
@@ -518,44 +119,6 @@ function @updateCrafting()
 		$queue.erase($queue.size-1)
 	@countDown()
 
-
-function @drawScrollBar($X:number,$Y:number,$width:number,$height:number,$position:number,$max:number)
-	; SCROLL VIEW
-	if $max < 1
-		$max = 1
-		
-	var $buttonHeight = $height/4
-	var $arrowSize = $width-6
-	var $margin = ($width - $arrowSize)/2
-	
-	;UP
-	if @button($X,$Y,$width,$buttonHeight,0,gray,"")
-		$scroll -= $linesOnScreen-2
-		if $scroll < 0
-			$scroll = 0
-	@drawTriangleUp($X+$margin,$Y+$buttonHeight/2-$margin,$width-$margin*2,0,white)
-	
-	; DOWN
-	if @button($X,$height-$buttonHeight,$width,$buttonHeight,0,gray,"")
-		$scroll += $linesOnScreen-3
-		if $scroll >= $itemLines
-			$scroll = $itemLines-1
-		if $scroll < 0
-			$scroll = 0
-	@drawTriangleDown($X+$margin,(screen_h-$buttonHeight)+$buttonHeight/2-$margin,$width-$margin*2,0,white)
-	
-	var $scrollBoxTop = $buttonHeight + 2
-	var $scrollBoxBottom = $height - $buttonHeight - 7
-	var $scrollBoxHeight = $scrollBoxBottom - $scrollBoxTop
-	var $indicatorY = $scrollBoxTop + $scrollBoxHeight * ($position/$max)
-	if @button($X,$scrollBoxTop,$width,$scrollBoxHeight+5,0,color(20,20,20),"")
-		var $clickY = click_y - $scrollBoxTop
-		var $clickNormalized = $clickY / $scrollBoxHeight
-		var $newScroll = min(floor($max * $clickNormalized),$max)
-		print("scroll click",$clickNormalized,"new",$newScroll,"max",$max)
-		$scroll = $newScroll
-		;var $newScroll = 
-	draw_rect($X,$indicatorY,$X+$width,$indicatorY+5,0,white)
 		
 tick
 	blank()
@@ -578,5 +141,7 @@ tick
 	;@crafting()
 	@updateCrafting()
 
-		
+timer interval 5
+	;print("auto queue", time, $autoqueue.size > 0)
+	@updateAutoQueue()
 		
