@@ -68,4 +68,13 @@ function @drawHeart($screen:screen,$X:number,$Y:number,$filled:number)
 	$screen.draw_line($X+1,$Y+5,$X+5,$Y+9,$lineColor)
 	$screen.draw_line($X+7,$Y+5,$X+3,$Y+9,$lineColor)
 	
+function @flushzero($kvpsource:text):text
+	var $kvpresult = ""
+	; remove entries in $kvpsource, return a new kvp with only non-zero values.
+	; in use: $favorites.@flushzero()
+	foreach $kvpsource ($i,$n)
+		if $n != 0
+			$kvpresult.$i = $n
+	return $kvpresult
+		
 

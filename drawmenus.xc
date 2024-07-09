@@ -310,7 +310,9 @@ function @drawFavoriteList()
 			var $rect_right = $screen.width-2
 			$screen.@drawHeart($spacer,$rect_top+1,$favorites.$favName)
 			if @button(1,$rect_top,11,11,0,0,"",white,2) ; heart button
+				print("unfave ",$favName)
 				$favorites.$favName = 0
+				$favorites.@flushzero()
 				$autoQueue.$favName = 0
 			if @button(12,$rect_top,130,11,0,color(60,60,60),$favName,white,2) ; jump to item button
 				$selectedRecipe = $favName
