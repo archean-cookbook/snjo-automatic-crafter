@@ -6,8 +6,9 @@ function @addHistory()
 	$now.showFavorites = $showFavoriteScreen
 	$now.showAutoView = $showAutoView
 	$now.favItemSelected = $favItemSelected
+	$now.showSettings = $showSettings
 	;$now.scroll = $scroll
-	print("add history",$now)
+	;print("add history",$now)
 	var $historyLast = $history.size-1
 	;print("history step",$historyStep,"< size",$historyLast)
 	if $historyStep < $historyLast
@@ -42,12 +43,13 @@ function @getHistory($number:number)
 	$showFavoriteScreen = $set.showFavorites
 	$showAutoView = $set.showAutoView
 	$favItemSelected = $set.favItemSelected
-	print("jump to history",$historyStep,$set)
+	$showSettings = $set.showSettings
+	;print("jump to history",$historyStep,$set)
 	
 function @updateHistoryScroll($step:number,$scrollValue:number)
 	if  $step >= $history.size
 		return
 	var $newHistoryEntry = $history.$step
 	$newHistoryEntry.scroll = $scroll
-	print("updated scroll on entry",$step,$newHistoryEntry)
+	;print("updated scroll on entry",$step,$newHistoryEntry)
 	$history.$step = $newHistoryEntry

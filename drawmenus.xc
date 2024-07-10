@@ -1,3 +1,4 @@
+var $buttonColor = color(35,35,40)
 
 function @drawCategories($width:number)
 	var $line = 1
@@ -12,7 +13,7 @@ function @drawCategories($width:number)
 		var $rect_top = $line*($screen.char_h+$marginVert+$spacer*2)+$spacer
 		var $rect_bottom = $rect_top + $screen.char_h + $marginVert*2
 		var $rect_left = $spacer
-		if @button($rect_left,$rect_top,$width,0,0,gray,$category,white,2) && $newclick
+		if @button($rect_left,$rect_top,$width,0,0,$buttonColor,$category,white,2) && $newclick
 			$selectedCategory = $category
 			print("select",$selectedCategory)
 			$menulevel++
@@ -25,11 +26,15 @@ function @drawCategories($width:number)
 	var $rect_top = $line*($screen.char_h+$marginVert+$spacer*2)+$spacer
 	var $rect_bottom = $rect_top + $screen.char_h + $marginVert*2
 	var $rect_left = $spacer
-	if @button($rect_left,$rect_top,$width,0,0,gray,"  Favorites & Auto Queue",white,2) && $newclick
+	if @button($rect_left,$rect_top,$width,0,0,$buttonColor,"  Favorites & Auto Queue",white,2) && $newclick
 		$showFavoriteScreen = 1
 		@addHistory()
-		print($history.last)
 	$screen.@drawHeart($rect_left+2,$rect_top+1,0)
+	$rect_top += $screen.char_h+$marginVert+$spacer*2
+	if @button($rect_left,$rect_top,$width,0,0,$buttonColor,"Settings & sleep",white,2) && $newclick
+		$showSettings = 1
+		@addHistory()
+
 	$itemLines = $index
 	;$screen.@drawHeart(170,20,1)
 
@@ -53,7 +58,7 @@ function @drawItems($width:number,$category:text)
 		var $rect_right = $screen.width-2
 		;print($category, $open)
 		;if $screen.button_rect($rect_left,$rect_top,$rect_right,$rect_bottom,0,gray)
-		if @button($rect_left,$rect_top,$width,0,0,gray,$craft,white,2) && $newclick
+		if @button($rect_left,$rect_top,$width,0,0,$buttonColor,$craft,white,2) && $newclick
 			;$categories.$category = !$categories.$category
 			@updateHistoryScroll($historyStep,$scroll)
 			print("select",$craft)
@@ -339,5 +344,32 @@ function @drawFavoriteScreen()
 		@drawAutoView($favItemSelected)
 	else
 		@drawFavoriteList()
+		
+function @drawSettings()
+	var $topX = $spacer
+	var $topSpacing = 30
+	if @button($topX,2,20,0,0,blue,"UP",white,2)
+		$showSettings = 0
+	$topX += 22
+	if @button($topX, $spacer, $topSpacing, 0,0,blue,"BACK",white,2) && $newclick
+		@getHistory($historyStep-1)
+	$topX += $topSpacing+$spacer
+	if @button($topX, $spacer, $topSpacing, 0,0,blue,"FORW",white,2) && $newclick
+		@getHistory($historyStep+1)
+	$topX += $topSpacing+$spacer
+	$screen.write($topX,$spacer+2,white,"Settings")
+	var $bw = 100
+	$screen.write($spacer,20,white,"Go to sleep after:")
+	if @button($spacer,35,$bw,0,0,@onColor($sleepTime==300 && $allowSleepMode,blue,$buttonColor),"5 minutes",white,2)
+		$sleepTime = 300
+		$allowSleepMode = 1
+	if @button($spacer,50,$bw,0,0,@onColor($sleepTime==900 && $allowSleepMode,blue,$buttonColor),"15 minutes",white,2)
+		$sleepTime = 900
+		$allowSleepMode = 1
+	if @button($spacer,65,$bw,0,0,@onColor($sleepTime==1800 && $allowSleepMode,blue,$buttonColor),"30 minutes",white,2)
+		$sleepTime = 1800
+		$allowSleepMode = 1
+	if @button($spacer,80,$bw,0,0,@onColor($allowSleepMode==0,blue,$buttonColor),"Never",white,2)
+		$allowSleepMode = 0
 	
 	
