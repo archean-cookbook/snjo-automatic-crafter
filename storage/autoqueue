@@ -1,1 +1,1 @@
-.Plastic{100}.LowVoltageJunction{1}.Circuit{10}.RTG{0}.LowVoltageBattery{0}.MiniComputer{0}.DataCable{0}.HighVoltageBattery{0}.Beacon{0}.Diode{100}.Wire{100}.Capacitor{100}.HighVoltageJunction{0}.Aileron{0}.ToggleButton{1}.DataJunction{1}
+.Plastic{2500}.LowVoltageJunction{1}.Circuit{10}.RTG{0}.LowVoltageBattery{0}.MiniComputer{0}.DataCable{0}.HighVoltageBattery{0}.Beacon{0}.Diode{100}.Wire{100}.Capacitor{100}.HighVoltageJunction{0}.Aileron{0}.ToggleButton{1}.DataJunction{1}.ConcreteBlock{1000}

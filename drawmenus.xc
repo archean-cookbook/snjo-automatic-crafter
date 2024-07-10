@@ -319,6 +319,7 @@ function @drawFavoriteList()
 				$selectedCategory = @getCategory($favName)
 				$showFavoriteScreen = 0
 				$menuLevel = 2
+				$scroll = 0
 				@addHistory()
 			if @button(145,$rect_top,35,11,0,@onColor($autoQueue.$favName > 0, green, gray),"Auto",black,2) ; auto button
 				print("auto menu")
