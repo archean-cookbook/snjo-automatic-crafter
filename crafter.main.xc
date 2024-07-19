@@ -1,7 +1,7 @@
 ; Set you external screen here if you use this HDD in a mini computer.
 
-var $screen = screen
-;var $screen = screen("external_screen",0)
+var $ac_screen = screen
+;var $ac_screen = screen("external_screen",0)
 
 include "craftfunctions.xc"
 const $crafter = "crafter"
@@ -60,12 +60,12 @@ init
 	if $sleepTime == 0 ; storage value not set
 		$sleepTime = 300
 		print("set initial sleep time, saved to storage")
-	$linesOnScreen = floor($screen.height / ($screen.char_h + $spacer + $marginvert*2))-1
+	$linesOnScreen = floor($ac_screen.height / ($ac_screen.char_h + $spacer + $marginvert*2))-1
 	;print("lines on screen",$linesOnScreen)
-	$upX = $screen.width-14
-	$upY = $screen.height/4
-	$downX = $screen.width-14
-	$downY = $screen.height*3/4-2
+	$upX = $ac_screen.width-14
+	$upY = $ac_screen.height/4
+	$downX = $ac_screen.width-14
+	$downY = $ac_screen.height*3/4-2
 	$menupages.append("Categories","Items","Craft","Subcraft")
 	array $recipesCategories : text
 	$recipesCategories.from(get_recipes_categories($crafter), ",") ; get categories
@@ -143,7 +143,7 @@ tick
 		@resetSleepActivity()
 	if $sleep ; && !$_isCrafting; check if last click happened some time ago
 		if !$oldSleep  ; ensures that the sleep screen is only drawn once, saving even more compute power
-			@drawSleepScreen() ; sleep mode screen
+			@drawSleepScreen($ac_screen) ; sleep mode screen
 		return ; don't run the rest of the update loop
 	elseif $wakeDelay > 0 ; delay allowing clicks after waking with the screen, prevents accidental menu clicks
 		$wakeDelay-- ; allow the normal update loop when this reaches 0 (1 tick)
@@ -151,11 +151,11 @@ tick
 	;else proceed with normal update loop
 	$oldSleep = $sleep
 	
-	$screen.blank()
-	$screen.text_size(1)
+	$ac_screen.blank()
+	$ac_screen.text_size(1)
 	
 	;DRAW UI
-	$lineHeight = $screen.char_h + $spacer + $marginVert*2
+	$lineHeight = $ac_screen.char_h + $spacer + $marginVert*2
 	if $showQueue == 1
 		@drawQueueView()
 	elseif $showFavoriteScreen
@@ -167,7 +167,7 @@ tick
 
 	@drawQueueBar()
 	
-	@drawScrollBar($screen.width-16,1,15,$screen.height-2,$scroll,$scrollMax)
+	@drawScrollBar($ac_screen,$ac_screen.width-16,1,15,$ac_screen.height-2,$scroll,$scrollMax)
 	
 	; CRAFT PRODUCTS
 	;@crafting()

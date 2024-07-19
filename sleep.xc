@@ -35,16 +35,16 @@ function @resetSleepActivity()
 	$sleepLastClick = time
 	output_number($crafterRelay,0,1) ; turn on crafter
 	
-function @drawSleepScreen()
-	$screen.blank()
-	$screen.text_size(1)
-	$screen.write(45,60,cyan,"Automatic Crafter")
-	$screen.write(45,70,orange,"Sleeping to save power")
-	$screen.write(45,90,orange,"Click to wake")
+function @drawSleepScreen($_screen:screen)
+	$_screen.blank()
+	$_screen.text_size(1)
+	$_screen.write(45,60,cyan,"Automatic Crafter")
+	$_screen.write(45,70,orange,"Sleeping to save power")
+	$_screen.write(45,90,orange,"Click to wake")
 		
 ;click ; changed from click to update to work on external screens.
 update
-	if $screen.clicked
+	if $ac_screen.clicked
 		; print("awaken?, force sleep:",$forcesleep)
 		if $forceSleep == 1 ; prevents waking right up when clicking "sleep now". Only worked when "click" was in use.
 			; print("disable force sleep")
