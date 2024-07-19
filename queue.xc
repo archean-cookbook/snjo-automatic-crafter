@@ -22,11 +22,11 @@ function @checkRecipe($name:text,$recipeamount:number):text
 		var $available = @getResource($ingredient,$inventories);@getResource($container,$ingredient)
 		if $available < $required
 			var $diff = $required-$available
-			print("too few of",$ingredient,"need",$diff,"requested",$required,"have",$available);,"ingAm",$ingredientAmount,"recAm",$recipeamount)
+			;print("too few of",$ingredient,"need",$diff,"requested",$required,"have",$available);,"ingAm",$ingredientAmount,"recAm",$recipeamount)
 			if @getCategory($ingredient) == ""
-				print("skipping mineral, not added to queue")
+				;print("skipping mineral, not added to queue")
 			else
-				print("adding ingredient to queue:",$ingredient,"x" & $diff:text)
+				;print("adding ingredient to queue:",$ingredient,"x" & $diff:text)
 				$result.$ingredient = $diff
 				return $result
 	return ""
@@ -51,7 +51,7 @@ function @addToQueueExistingItem($name:text,$amount:number):number
 			;print(text("insert queue item at: {} size: {}",$i,$queue.size))
 			$queue.append($new)
 			;print(text("queue size now: {}",$queue.size))
-			print("Add to existing queue item", $n,$i,$new.amountordered,$new.amountgoal)
+			;print("Add to existing queue item", $n,$i,$new.amountordered,$new.amountgoal)
 			;print("queue item now", $queue.$i)
 			return 1
 	return 0

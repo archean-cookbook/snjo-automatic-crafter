@@ -50,12 +50,13 @@ include "drawmenus.xc"
 
 			
 init
+	print("Automatic Crafter init")
 	@resetSleepActivity()
 	if $sleepTime == 0 ; storage value not set
 		$sleepTime = 300
 		print("set initial sleep time, saved to storage")
 	$linesOnScreen = floor($screen.height / ($screen.char_h + $spacer + $marginvert*2))-1
-	print("lines on screen",$linesOnScreen)
+	;print("lines on screen",$linesOnScreen)
 	$upX = $screen.width-14
 	$upY = $screen.height/4
 	$downX = $screen.width-14
@@ -132,14 +133,17 @@ tick
 	var $_progress = input_number($crafter,0)
 	var $_isCrafting = abs($_progress) != 1 && $_progress != 0
 	$sleep = @checkGoToSleep()
-
-	if $sleep && !$_isCrafting;; check if last click happened some time ago
+	if $_isCrafting
+		;print("delay sleep, still crafting", time, $sleepLastClick, time-$sleepLastClick)
+		@resetSleepActivity()
+	if $sleep ; && !$_isCrafting; check if last click happened some time ago
 		if !$oldSleep  ; ensures that the sleep screen is only drawn once, saving even more compute power
 			@drawSleepScreen() ; sleep mode screen
 		return ; don't run the rest of the update loop
 	elseif $wakeDelay > 0 ; delay allowing clicks after waking with the screen, prevents accidental menu clicks
 		$wakeDelay-- ; allow the normal update loop when this reaches 0 (1 tick)
 		return
+	;else proceed with normal update loop
 	$oldSleep = $sleep
 	
 	blank()
@@ -166,5 +170,6 @@ tick
 
 timer interval 5
 	;print("auto queue", time, $autoqueue.size > 0)
-	@updateAutoQueue()
+	if !@checkGoToSleep()
+		@updateAutoQueue()
 		
