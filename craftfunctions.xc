@@ -53,20 +53,20 @@ function @getResourceBasic($container:text,$resourceName:text):number
 	var $items = input_text($container,0)
 	return $items.$resourceName:number
 	
-function @drawHeart($screen:screen,$X:number,$Y:number,$filled:number)
+function @drawHeart($_screen:screen,$X:number,$Y:number,$filled:number)
 	var $lineColor = red
 	if $filled
-		$screen.draw_rect($X+1,$Y+1,$X+8,$Y+6,0,pink)
-		$screen.draw_rect($X+3,$Y+6,$X+6,$Y+8,0,pink)
-	$screen.draw_line($X+1,$Y,$X+4,$Y,$lineColor)
-	$screen.draw_point($X+4,$Y+1,$lineColor)
-	$screen.draw_line($X+5,$Y,$X+8,$Y,$lineColor)
+		$_screen.draw_rect($X+1,$Y+1,$X+8,$Y+6,0,pink)
+		$_screen.draw_rect($X+3,$Y+6,$X+6,$Y+8,0,pink)
+	$_screen.draw_line($X+1,$Y,$X+4,$Y,$lineColor)
+	$_screen.draw_point($X+4,$Y+1,$lineColor)
+	$_screen.draw_line($X+5,$Y,$X+8,$Y,$lineColor)
 	
-	$screen.draw_line($X,$Y+1,$X,$Y+5,$lineColor)
-	$screen.draw_line($X+8,$Y+1,$X+8,$Y+5,$lineColor)
+	$_screen.draw_line($X,$Y+1,$X,$Y+5,$lineColor)
+	$_screen.draw_line($X+8,$Y+1,$X+8,$Y+5,$lineColor)
 
-	$screen.draw_line($X+1,$Y+5,$X+5,$Y+9,$lineColor)
-	$screen.draw_line($X+7,$Y+5,$X+3,$Y+9,$lineColor)
+	$_screen.draw_line($X+1,$Y+5,$X+5,$Y+9,$lineColor)
+	$_screen.draw_line($X+7,$Y+5,$X+3,$Y+9,$lineColor)
 	
 function @flushzero($kvpsource:text):text
 	var $kvpresult = ""

@@ -377,5 +377,6 @@ function @drawSettings()
 	if @button($spacer,110,$bw,0,0,@onColor($allowSleepMode==0,blue,$buttonColor),"Sleep now",white,2)
 		$allowSleepMode = 1
 		$sleepLastClick = 0 ; 1970
+		$forceSleep = 1
 	
 	

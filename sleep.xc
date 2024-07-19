@@ -19,10 +19,13 @@ storage var $sleepTime : number	; seconds, 300 is 5 minutes, set in init
 						; When waking up, the failed craft resumes trying.
 var $oldSleep = 0
 var $sleep = 0			; used in the main update loop example above
+var $forceSleep = 0     ; used by the "sleep now" option
 
 function @checkGoToSleep():number
+	;print("sleep check",$sleep,$sleepLastClick,$sleepTime)
 	if time > $sleepLastClick + $sleepTime && $allowSleepMode
 		output_number($crafterRelay,0,0) ; turn off crafter
+		;print("go to sleep")
 		return 1
 	return 0
 
@@ -33,11 +36,18 @@ function @resetSleepActivity()
 	output_number($crafterRelay,0,1) ; turn on crafter
 	
 function @drawSleepScreen()
-	blank()
-	text_size(1)
-	write(45,60,cyan,"Automatic Crafter")
-	write(45,70,orange,"Sleeping to save power")
-	write(45,90,orange,"Click to wake")
+	$screen.blank()
+	$screen.text_size(1)
+	$screen.write(45,60,cyan,"Automatic Crafter")
+	$screen.write(45,70,orange,"Sleeping to save power")
+	$screen.write(45,90,orange,"Click to wake")
 		
-click
-	@resetSleepActivity()
+;click ; changed from click to update to work on external screens.
+update
+	if $screen.clicked
+		; print("awaken?, force sleep:",$forcesleep)
+		if $forceSleep == 1 ; prevents waking right up when clicking "sleep now". Only worked when "click" was in use.
+			; print("disable force sleep")
+			$forceSleep = 0
+		else
+			@resetSleepActivity()

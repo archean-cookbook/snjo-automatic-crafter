@@ -1,7 +1,7 @@
 function @button($x:number, $y:number, $width:number, $height:number, $linecolor:number, $backcolor:number, $text:text, $textcolor:number, $margin:number):number
-	;if $debug
+	; if $debug
 	;	print($x,$y,$width,$height,$text)
-	;var $screen = screen
+	; var $screen = screen
 	if $width == 0
 		$width = size($text)*$screen.char_w + $margin*2
 	if $height == 0
@@ -12,10 +12,10 @@ function @button($x:number, $y:number, $width:number, $height:number, $linecolor
 	return $result
 
 function @drawTriangleUp($X:number,$Y:number,$size:number,$lineColor:number,$fillColor:number)
-	draw_triangle($X+$size/2,$Y, $X,$Y+$size, $X+$size,$Y+$size,$lineColor,$fillColor)
+	$screen.draw_triangle($X+$size/2,$Y, $X,$Y+$size, $X+$size,$Y+$size,$lineColor,$fillColor)
 	
 function @drawTriangleDown($X:number,$Y:number,$size:number,$lineColor:number,$fillColor:number)
-	draw_triangle($X+$size/2,$Y+$size, $X,$Y, $X+$size,$Y,$lineColor,$fillColor)
+	$screen.draw_triangle($X+$size/2,$Y+$size, $X,$Y, $X+$size,$Y,$lineColor,$fillColor)
 	
 function @drawScrollBar($X:number,$Y:number,$width:number,$height:number,$position:number,$max:number)
 	; SCROLL VIEW
@@ -40,7 +40,7 @@ function @drawScrollBar($X:number,$Y:number,$width:number,$height:number,$positi
 			$scroll = $itemLines-1
 		if $scroll < 0
 			$scroll = 0
-	@drawTriangleDown($X+$margin,(screen_h-$buttonHeight)+$buttonHeight/2-$margin,$width-$margin*2,0,white)
+	@drawTriangleDown($X+$margin,($screen.height-$buttonHeight)+$buttonHeight/2-$margin,$width-$margin*2,0,white)
 	
 	var $scrollBoxTop = $buttonHeight + 2
 	var $scrollBoxBottom = $height - $buttonHeight - 7
@@ -53,7 +53,7 @@ function @drawScrollBar($X:number,$Y:number,$width:number,$height:number,$positi
 		print("scroll click",$clickNormalized,"new",$newScroll,"max",$max)
 		$scroll = $newScroll
 		;var $newScroll = 
-	draw_rect($X,$indicatorY,$X+$width,$indicatorY+5,0,white)
+	$screen.draw_rect($X,$indicatorY,$X+$width,$indicatorY+5,0,white)
 	
 function @onColor($value:number,$on:number,$off:number):number
 	if $value

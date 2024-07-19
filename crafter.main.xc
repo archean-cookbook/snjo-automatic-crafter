@@ -1,3 +1,8 @@
+; Set you external screen here if you use this HDD in a mini computer.
+
+var $screen = screen
+;var $screen = screen("external_screen",0)
+
 include "craftfunctions.xc"
 const $crafter = "crafter"
 ;const $container = "container"
@@ -13,7 +18,7 @@ var $scroll = 0
 var $scrollMax = 100
 var $currentCraft:text
 var $categories:text
-var $screen = screen
+
 var $marginHorz = 5 ;distance from text to edge of button
 var $marginVert = 2 ;distance from text to edge of button
 var $spacer = 2 ; distance between buttons
@@ -146,8 +151,8 @@ tick
 	;else proceed with normal update loop
 	$oldSleep = $sleep
 	
-	blank()
-	text_size(1)
+	$screen.blank()
+	$screen.text_size(1)
 	
 	;DRAW UI
 	$lineHeight = $screen.char_h + $spacer + $marginVert*2
@@ -162,7 +167,7 @@ tick
 
 	@drawQueueBar()
 	
-	@drawScrollBar(screen_w-16,1,15,screen_h-2,$scroll,$scrollMax)
+	@drawScrollBar($screen.width-16,1,15,$screen.height-2,$scroll,$scrollMax)
 	
 	; CRAFT PRODUCTS
 	;@crafting()
