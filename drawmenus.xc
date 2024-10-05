@@ -210,7 +210,7 @@ function @drawCraftMenu()
 		$ac_screen.@drawHeart(168,$topY+1,$favorites.$selectedRecipe)
 		if $ac_screen.button_rect(167,$topY,178,$topY+11,0,0)
 			$favorites.$selectedRecipe = !$favorites.$selectedRecipe
-			print(text("added {} to favorites",$selectedRecipe)
+			print(text("added {} to favorites",$selectedRecipe))
 	$topX += $topSpacing+$spacer*2
 
 	$topY += $lineHeight
