@@ -29,8 +29,6 @@ function @scrollDown()
 		$scroll = 0
 
 function @drawScrollBar($_screen:screen, $X:number,$Y:number,$width:number,$height:number,$position:number,$max:number)
-
-	print($scrollInput)
 	; SCROLL VIEW
 	if $max < 1
 		$max = 1
