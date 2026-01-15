@@ -58,7 +58,7 @@ function @drawItems($width:number,$category:text)
 		var $rect_right = $ac_screen.width-2
 		;print($category, $open)
 		;if $ac_screen.button_rect($rect_left,$rect_top,$rect_right,$rect_bottom,0,gray)
-		if @button($ac_screen,$rect_left,$rect_top,$width,0,0,$buttonColor,$craft,white,2) && $newclick
+		if @button($ac_screen,$rect_left,$rect_top,$width,0,0,$buttonColor,get_recipe_label($craft),white,2) && $newclick
 			;$categories.$category = !$categories.$category
 			@updateHistoryScroll($historyStep,$scroll)
 			print("select",$craft)
@@ -92,9 +92,8 @@ function @drawRecipe($width:number,$recipe:text)
 		if $item == "O2" || $item == "H2" || $item == "H2O"
 			var $percent = $resourceAmount*100
 			$resourceText = text("{} tank at {0.00}% / {}",$item,$percent,$amount)
-
 		else
-			$resourceText = text("{} {} / {}",$item,$resourceamount,$amount)
+			$resourceText = text("{} {} / {}",get_recipe_label($item),$resourceamount,$amount)
 		var $bgColor = color(30,100,30) ; green, is available
 		var $textColor = white
 		if $resourceAmount < $amount
@@ -158,7 +157,7 @@ function @drawQueueView()
 	$ac_screen.write($spacer,$spacer,white,$status)
 	var $line = 1
 	foreach $queue ($i,$n)
-		$ac_screen.write($spacer,$spacer+$lineHeight*$line,white,$n.name)
+		$ac_screen.write($spacer,$spacer+$lineHeight*$line,white,get_recipe_label($n.name))
 		; var $remaining = $n.amountordered-@getResource($n.name,$inventories);@getResource($container,$n.name)
 		var $remaining = $n.amountgoal-@getResource($n.name,$inventories)
 		$ac_screen.write($ac_screen.width-50,$spacer+$lineHeight*$line,white,$remaining:text)
@@ -222,10 +221,11 @@ function @drawCraftMenu()
 		;print("sc",$selectedCategory)
 		@drawItems($ac_screen.width-$marginHorz-15,$selectedCategory)
 	elseif $menulevel == 2
-		$ac_screen.write($topX,$spacer+$marginVert,white,$selectedRecipe)
+		$ac_screen.write($topX,$spacer+$marginVert,white,get_recipe_label($selectedRecipe))
 		@drawRecipe($ac_screen.width-$marginHorz-15,$selectedRecipe)
 
 function @drawAutoView($autoItem:text)
+	var $itemDisplayName = get_recipe_label($autoItem)
 	var $addColor = color (20,60,20)
 	var $subColor = color (60,10,20)
 	
@@ -243,7 +243,7 @@ function @drawAutoView($autoItem:text)
 	$topX += $topSpacing+$spacer
 	$ac_screen.write($topX,4,white," Auto craft ")
 	;$ac_screen.write($ac_screen.width/2 - 10 - (size($autoItem) * $ac_screen.char_w * 0.5),20,cyan,$autoItem) ; item name
-	$ac_screen.write(90 - (size($autoItem) * $ac_screen.char_w * 0.5),20,cyan,$autoItem) ; item name
+	$ac_screen.write(90 - (size($itemDisplayName) * $ac_screen.char_w * 0.5),20,cyan,$itemDisplayName) ; item name
 	
 	$ac_screen.write(60,40,white,"Maintain:")
 	var $amount = $autoQueue.$autoItem:number
@@ -320,7 +320,7 @@ function @drawFavoriteList()
 				$favorites.$favName = 0
 				$favorites.@flushzero()
 				$autoQueue.$favName = 0
-			if @button($ac_screen,12,$rect_top,130,11,0,color(60,60,60),$favName,white,2) ; jump to item button
+			if @button($ac_screen,12,$rect_top,130,11,0,color(60,60,60),get_recipe_label($favName),white,2) ; jump to item button
 				$selectedRecipe = $favName
 				$selectedCategory = @getCategory($favName)
 				$showFavoriteScreen = 0
@@ -375,9 +375,13 @@ function @drawSettings()
 	;if @button($spacer,95,$bw,0,0,@onColor($sleepTime==5 && $allowSleepMode,blue,$buttonColor),"test: 5s",white,2)
 	;	$sleepTime = 5
 	;	$allowSleepMode = 1
-	if @button($ac_screen,$spacer,110,$bw,0,0,@onColor($allowSleepMode==0,blue,$buttonColor),"Sleep now",white,2)
+	if @button($ac_screen,$spacer,100,$bw,0,0,@onColor($allowSleepMode==0,blue,$buttonColor),"Sleep now",white,2)
 		$allowSleepMode = 1
 		$sleepLastClick = 0 ; 1970
 		$forceSleep = 1
-	
+	if @button($ac_screen,$spacer,125,$bw,0,0,@onColor($invertScroll,green,red),"Invert scroll",white,2)
+		if $invertScroll == 1
+			$invertScroll = 0
+		else
+			$invertScroll = 1
 	

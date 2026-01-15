@@ -10,12 +10,14 @@ var $inventories = ".a{container}.b{tank_O2}.c{tank_H2}.d{tank_H2O}.e{tank_1}"
 var $crafterRelay = "crafter_relay" ; if present and connected, turns off crafter power when in sleep mode
 storage var $favorites : text
 storage var $autoqueue : text
+storage var $invertScroll : number ; user setting for the freaks
 ; it's optional to place separate O2 and H2 tanks.
 ; If you have one, all or none of the tanks above, the code just counts from the ones it finds
 
 var $wakeDelay = 0
 var $scroll = 0
 var $scrollMax = 100
+var $scrollInput = 0 ; user's mouse scroll whell input, polled on tick
 var $currentCraft:text
 var $categories:text
 
@@ -52,7 +54,6 @@ include "ui.xc"
 include "queue.xc"
 include "sleep.xc"
 include "drawmenus.xc"
-
 			
 init
 	print("Automatic Crafter init")
@@ -134,6 +135,12 @@ function @updateCrafting()
 		$queue.erase($queue.size-1)
 	@countDown()
 
+scroll
+	if scroll()
+		$scrollInput = scroll()
+		if $invertScroll == 1
+			$scrollInput = $scrollInput * -1
+
 tick
 	var $_progress = input_number($crafter,0)
 	var $_isCrafting = abs($_progress) != 1 && $_progress != 0
@@ -172,6 +179,7 @@ tick
 	; CRAFT PRODUCTS
 	;@crafting()
 	@updateCrafting()
+	$scrollInput = 0
 
 timer interval 5
 	;print("auto queue", time, $autoqueue.size > 0)

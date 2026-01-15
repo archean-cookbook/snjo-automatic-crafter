@@ -16,7 +16,21 @@ function @drawTriangleUp($_screen:screen, $X:number,$Y:number,$size:number,$line
 function @drawTriangleDown($_screen:screen, $X:number,$Y:number,$size:number,$lineColor:number,$fillColor:number)
 	$_screen.draw_triangle($X+$size/2,$Y+$size, $X,$Y, $X+$size,$Y,$lineColor,$fillColor)
 	
+function @scrollUp()
+	$scroll -= $linesOnScreen-2
+	if $scroll < 0
+		$scroll = 0
+
+function @scrollDown()
+	$scroll += $linesOnScreen-3
+	if $scroll >= $itemLines
+		$scroll = $itemLines-1
+	if $scroll < 0
+		$scroll = 0
+
 function @drawScrollBar($_screen:screen, $X:number,$Y:number,$width:number,$height:number,$position:number,$max:number)
+
+	print($scrollInput)
 	; SCROLL VIEW
 	if $max < 1
 		$max = 1
@@ -27,18 +41,24 @@ function @drawScrollBar($_screen:screen, $X:number,$Y:number,$width:number,$heig
 	
 	;UP
 	if @button($_screen,$X,$Y,$width,$buttonHeight,0,gray,"")
-		$scroll -= $linesOnScreen-2
-		if $scroll < 0
-			$scroll = 0
+		@scrollUp()
+		;$scroll -= $linesOnScreen-2
+		;if $scroll < 0
+		;	$scroll = 0
+	if $scrollInput > 0
+		@scrollUp()
 	@drawTriangleUp($_screen,$X+$margin,$Y+$buttonHeight/2-$margin,$width-$margin*2,0,white)
 	
 	; DOWN
 	if @button($_screen,$X,$height-$buttonHeight,$width,$buttonHeight,0,gray,"")
-		$scroll += $linesOnScreen-3
-		if $scroll >= $itemLines
-			$scroll = $itemLines-1
-		if $scroll < 0
-			$scroll = 0
+		@scrollDown()
+		;$scroll += $linesOnScreen-3
+		;if $scroll >= $itemLines
+		;	$scroll = $itemLines-1
+		;if $scroll < 0
+		;	$scroll = 0
+	if $scrollInput < 0
+		@scrollDown()
 	@drawTriangleDown($_screen,$X+$margin,($_screen.height-$buttonHeight)+$buttonHeight/2-$margin,$width-$margin*2,0,white)
 	
 	var $scrollBoxTop = $buttonHeight + 2
@@ -58,3 +78,4 @@ function @onColor($value:number,$on:number,$off:number):number
 	if $value
 		return $on
 	return $off
+
