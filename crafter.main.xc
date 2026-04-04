@@ -6,7 +6,8 @@ var $ac_screen = screen
 include "craftfunctions.xc"
 const $crafter = "crafter"
 ;const $container = "container"
-var $inventories = ".a{container}.b{tank_O2}.c{tank_H2}.d{tank_H2O}.e{tank_1}"
+const $abc = "abcdefghijklmnopqrstuvwxyz"
+var $inventories: text
 var $crafterRelay = "crafter_relay" ; if present and connected, turns off crafter power when in sleep mode
 storage var $favorites : text
 storage var $autoqueue : text
@@ -61,6 +62,11 @@ init
 	if $sleepTime == 0 ; storage value not set
 		$sleepTime = 300
 		print("set initial sleep time, saved to storage")
+	$inventories = ".a{tank_O2}.b{tank_H2}.c{tank_H2O}"
+	; Add containers to inventories
+	repeat 9 ($_i)
+		var $keyIndex = $_i + 3
+		$inventories = $inventories & "." & $abc.$keyIndex & "{container_" & text($_i) & "}"
 	$linesOnScreen = floor($ac_screen.height / ($ac_screen.char_h + $spacer + $marginvert*2))-1
 	;print("lines on screen",$linesOnScreen)
 	$upX = $ac_screen.width-14

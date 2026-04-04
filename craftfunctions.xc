@@ -39,7 +39,14 @@ function @getResource($name:text,$inventories:text):number
 			else ; very rough split in half, not accurate
 				$gasFallback = $amount/2
 		else
-			$items = input_text($n,0)
+			if input_number($n, 0) > 0 ; Check if inventory has items
+				var $_items = input_text($n, 0)
+				foreach $_items ($_i, $_item)
+					if $items.$_i ; If the item already exists, add to it
+						$items.$_i += $_item
+					else ; Otherwise, create a new entry
+						$items = $items & "." & $_i & "{" & $_item & "}"
+			;$items = input_text($n,0)
 	if $gasFallback > 0 && $O2 <= 0 && $H2 <= 0
 		$O2 = $gasFallback
 		$H2 = $gasFallback
