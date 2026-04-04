@@ -62,11 +62,11 @@ init
 	if $sleepTime == 0 ; storage value not set
 		$sleepTime = 300
 		print("set initial sleep time, saved to storage")
-	$inventories = ".b{tank_O2}.c{tank_H2}.d{tank_H2O}.e{tank_1}"
+	$inventories = ".a{tank_O2}.b{tank_H2}.c{tank_H2O}"
 	; Add containers to inventories
 	repeat 9 ($_i)
-		var $keyIndex = $_i + 4
-		$inventories = $inventories & "." & $abc.$keyIndex & "{container_" & text($_i + 1) & "}"
+		var $keyIndex = $_i + 3
+		$inventories = $inventories & "." & $abc.$keyIndex & "{container_" & text($_i) & "}"
 	$linesOnScreen = floor($ac_screen.height / ($ac_screen.char_h + $spacer + $marginvert*2))-1
 	;print("lines on screen",$linesOnScreen)
 	$upX = $ac_screen.width-14
